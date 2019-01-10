@@ -1,0 +1,9 @@
+# See https://github.com/dart-lang/mono_repo for details
+dart:
+  - stable
+
+stages:
+  # Register two jobs to run under the `analyzer_and_format` stage.
+  - analyzer_and_format:
+      - command: pub run pre_commit 0
+      - command: pub run pre_commit 1

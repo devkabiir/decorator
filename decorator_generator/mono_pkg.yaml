@@ -1,0 +1,19 @@
+# This key is required. It specifies the Dart SDKs your tests will run under
+# You can provide one or more value.
+# See https://docs.travis-ci.com/user/languages/dart#choosing-dart-versions-to-test-against
+# for valid values
+dart:
+  - stable
+
+stages:
+  # Register two jobs to run under the `analyzer_and_format` stage.
+  - analyzer_and_format:
+      - command: pub run pre_commit 0
+      - command: pub run pre_commit 1
+  - unit_test:
+      - command: pub run pre_commit 2
+      - command: pub run build_runner test
+
+cache:
+  directories:
+    - .dart_tool/build

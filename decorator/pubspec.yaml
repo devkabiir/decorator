@@ -1,0 +1,12 @@
+name: decorator
+version: 0.0.1
+description: Python's decorators in dart
+author: Dinesh Ahuja <dev@kabiir.me>
+homepage: https://github.com/devkabiir/decorator/
+dev_dependencies:
+  test: ^1.0.0
+  pre_commit:
+    git: https://github.com/devkabiir/pre_commit/
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'

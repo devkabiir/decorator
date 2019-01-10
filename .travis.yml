@@ -1,0 +1,50 @@
+# Created with package:mono_repo v1.2.1
+language: dart
+
+# Custom configuration
+sudo: required
+branches:
+  only:
+    - master
+
+jobs:
+  include:
+    - stage: analyzer_and_format
+      name: "SDK: stable - DIR: decorator - TASKS: pub run pre_commit 0"
+      script: ./tool/travis.sh command_0
+      env: PKG="decorator"
+      dart: stable
+    - stage: analyzer_and_format
+      name: "SDK: stable - DIR: decorator - TASKS: pub run pre_commit 1"
+      script: ./tool/travis.sh command_1
+      env: PKG="decorator"
+      dart: stable
+    - stage: analyzer_and_format
+      name: "SDK: stable - DIR: decorator_generator - TASKS: pub run pre_commit 0"
+      script: ./tool/travis.sh command_0
+      env: PKG="decorator_generator"
+      dart: stable
+    - stage: analyzer_and_format
+      name: "SDK: stable - DIR: decorator_generator - TASKS: pub run pre_commit 1"
+      script: ./tool/travis.sh command_1
+      env: PKG="decorator_generator"
+      dart: stable
+    - stage: unit_test
+      name: "SDK: stable - DIR: decorator_generator - TASKS: pub run pre_commit 2"
+      script: ./tool/travis.sh command_2
+      env: PKG="decorator_generator"
+      dart: stable
+    - stage: unit_test
+      name: "SDK: stable - DIR: decorator_generator - TASKS: pub run build_runner test"
+      script: ./tool/travis.sh command_3
+      env: PKG="decorator_generator"
+      dart: stable
+
+stages:
+  - analyzer_and_format
+  - unit_test
+
+cache:
+  directories:
+    - "$HOME/.pub-cache"
+    - decorator_generator/.dart_tool/build

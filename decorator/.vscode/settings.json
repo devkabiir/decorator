@@ -1,0 +1,4 @@
+{
+  // Required for publishing on http://pub.dartlang.org/
+  "dart.lineLength": 80,
+}

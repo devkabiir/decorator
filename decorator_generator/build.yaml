@@ -1,0 +1,14 @@
+targets:
+  $default:
+    builders:
+      decorator_generator|decorator_generator:
+        enabled: true
+
+builders:
+  decorator_generator:
+    import: 'package:decorator_generator/decorator_generator.dart'
+    builder_factories: ['decoratorBuilder']
+    build_extensions: { '.dart': ['.d.dart'] }
+    auto_apply: dependents
+    build_to: source
+    # runs_before: ['built_value_generator|built_value']
