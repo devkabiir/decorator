@@ -91,7 +91,7 @@ abstract class FunctionDecorator extends Decorator {
 /// `host(args, kwargs)` inside the decorator's `wraps`
 /// method. In case of a field `host.value` can also be used
 class HostElement<R> {
-  R _evaluatedValue;
+  _Object<R> _evaluatedObject;
 
   /// Positional arguments, if any, of the [host] and their corresponding values
   /// If there are no positional arguments this will be an empty map
@@ -116,7 +116,9 @@ class HostElement<R> {
 
   /// Whether [value] is already evaluated or not. This does not check if the
   /// [value] is `null` rather this flag gets set whenever [value] is set, i.e.
-  /// when [call] is called or when [value=] is used to explicitly set it
+  ///  - when [value] getter is invoked
+  ///  - when [value] setter is used to explicitly set it
+  ///  - when [call] is invoked (i.e. `host(args, kwargs)`)
   bool get isEvaluated => _isEvaluated;
 
   /// Whether [displayName], [args], [kwargs], [value] or [call] was modified
@@ -136,29 +138,36 @@ class HostElement<R> {
   /// This can return `null`
   /// - when the value returned from host is indeed `null`
   /// - when the host did not return anything i.e. it's return type is `void`
-  R get value => _evaluatedValue ??= this();
+  R get value {
+    if (isEvaluated) {
+      /// Here value can be `null`, but this simply means the [host] evaluated
+      /// with a `null` value.
+      return _evaluatedObject.value;
+    }
+
+    return call();
+  }
 
   /// Explicitly set the Evaluated value of the [host], this can also be `null`
   set value(R newValue) {
     _isEvaluated = true;
-    _evaluatedValue = newValue;
+    _evaluatedObject = _Object(newValue);
   }
 
   /// Evaluate this [host] with original [this.args] and [this.kwargs],
   /// optionally specify [args] and [kwargs] to use those instead
   ///
   /// This is equivalent to calling the [host] if it's a function
-  R call([Map<String, Object> args, Map<String, Object> kwargs]) {
-    _isEvaluated = true;
-    return _eval(args ?? this.args, kwargs ?? this.kwargs);
-  }
+  /// There is no guarantee if this is the first time [host] is being evaluated
+  R call([Map<String, Object> args, Map<String, Object> kwargs]) =>
+      value = _eval(args ?? this.args, kwargs ?? this.kwargs);
 
   /// Copy this instance with changes, if no changes are specifed, returns a
   /// copy of this instance
   ///
-  /// When specifying value, specify [nullValue] to true when it's indeed `null`
-  /// to help distinguish it from being specified as `null` vs not being
-  /// specified at all
+  /// When specifying [value], set [nullValue] to `true` when it's indeed `null`
+  /// to help distinguish it from being initialized to `null` vs not being
+  /// initialized
   HostElement<R> copyWith({
     String displayName,
     Map<String, Object> args,
@@ -172,23 +181,26 @@ class HostElement<R> {
         kwargs == null &&
         value == null &&
         eval == null) {
-      return HostElement<R>(
+      return HostElement(
         this.displayName,
         this.args,
         this.kwargs,
         _eval,
       )
-        ..value = this.value
+        .._isEvaluated = _isEvaluated
+        .._evaluatedObject = _evaluatedObject
         .._isModified = _isModified;
     }
 
-    return HostElement<R>(
+    return HostElement(
       displayName ?? this.displayName,
       args ?? this.args,
       kwargs ?? this.kwargs,
       eval ?? _eval,
     )
-      ..value = nullValue ? null : value ?? this.value
+      .._isEvaluated = nullValue || value != null || _isEvaluated
+      .._evaluatedObject =
+          nullValue ? _Object(null) : _Object(value ?? _evaluatedObject?.value)
       .._isModified = true;
   }
 
@@ -232,4 +244,14 @@ abstract class Wrapper extends Decorator {
   /// Remember to return the [host] for other decorators to consume, it
   /// can be the same instance or a different one
   HostElement<R> wraps<R>(HostElement<R> host);
+}
+
+/// Helper to check if an object is initialized with `null` value
+/// or uninitialized
+class _Object<T> {
+  final T value;
+
+  /// Helper to check if an object is initialized with `null` value
+  /// or uninitialized
+  _Object(this.value);
 }
