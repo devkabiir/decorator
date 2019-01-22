@@ -30,13 +30,8 @@ jobs:
       env: PKG="decorator_generator"
       dart: stable
     - stage: unit_test
-      name: "SDK: stable - DIR: decorator_generator - TASKS: pub run pre_commit 2"
-      script: ./tool/travis.sh command_2
-      env: PKG="decorator_generator"
-      dart: stable
-    - stage: unit_test
       name: "SDK: stable - DIR: decorator_generator - TASKS: pub run build_runner test"
-      script: ./tool/travis.sh command_3
+      script: ./tool/travis.sh command_2
       env: PKG="decorator_generator"
       dart: stable
 
