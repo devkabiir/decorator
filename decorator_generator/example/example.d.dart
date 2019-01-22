@@ -1,5 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: ,avoid_as,lines_longer_than_80_chars,unnecessary_const
+// ignore_for_file: ,avoid_as,lines_longer_than_80_chars,prefer_equal_for_default_values,unnecessary_const
 
 part of decorator_generator.example;
 

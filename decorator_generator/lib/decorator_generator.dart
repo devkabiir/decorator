@@ -24,6 +24,7 @@ final String decoratorHeader = ([
 final List<String> ignoreLints = [
   'avoid_as',
   'lines_longer_than_80_chars',
+  'prefer_equal_for_default_values',
   'unnecessary_const',
 ];
 
