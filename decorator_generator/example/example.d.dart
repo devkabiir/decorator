@@ -8,7 +8,9 @@ part of decorator_generator.example;
 // **************************************************************************
 
 /// This function joins its args
-String joinArgs(List<String> arg1, {List<String> arg2}) => HostElement(
+String joinArgs(List<String> arg1,
+        {List<String> arg2: const [r'''$Default''', 'Args']}) =>
+    HostElement(
       r'''_joinArgs(List<String> arg1, {List<String> arg2: const [r\'\'\'$Default\'\'\', 'Args']}) → String''',
       {
         'arg1': arg1,

@@ -1,7 +1,6 @@
 /// Part description
 part of decorator_generator;
 
-// ignore_for_file: prefer_interpolation_to_compose_strings
 /// Sample docs
 class DecoratorGenerator extends GeneratorForAnnotation<Decorator> {
   final DecoratorGeneratorOptions options;
@@ -68,7 +67,8 @@ class DecoratorGenerator extends GeneratorForAnnotation<Decorator> {
         throw InvalidGenerationSourceError(
             'Only private elements can be decorated',
             element: element,
-            todo: 'Change ${element.name} to _${element.name}');
+            todo: 'Change ${element.name} to _${element.name} or '
+                '__${element.name} (for private proxy metthod)');
       }
 
       final argLiteral = StringBuffer('{');
@@ -77,30 +77,51 @@ class DecoratorGenerator extends GeneratorForAnnotation<Decorator> {
       final argMapping = StringBuffer();
       final kwargMapping = StringBuffer();
 
+      final requiredProxyParams = ListBuilder<Parameter>();
+      final optionalProxyParams = ListBuilder<Parameter>();
+
       for (var parameter in element.parameters) {
         if (parameter.isPositional) {
-          argLiteral.write("'${parameter.name}':${parameter.name}");
-          if (parameter.defaultValueCode != null) {
-            argLiteral.write(' ?? ${parameter.defaultValueCode}');
-          }
+          argLiteral
+            ..write("'${parameter.name}':${parameter.name}")
 
-          /// Add trailing comma
-          argLiteral.write(',');
+            /// Add trailing comma
+            ..write(',');
 
           argMapping.write(
               "args['${parameter.name}'] as ${parameter.type.displayName},");
+
+          /// [requiredProxyParams] only accepts positional and required
+          (parameter.isOptional ? optionalProxyParams : requiredProxyParams)
+              .add(Parameter((b) {
+            b
+              ..name = parameter.name
+              ..type = refer(parameter.type.displayName);
+
+            if (parameter.defaultValueCode != null) {
+              b.defaultTo = Code(parameter.defaultValueCode);
+            }
+          }));
         } else {
-          kwargLiteral.write("'${parameter.name}':${parameter.name}");
+          kwargLiteral
+            ..write("'${parameter.name}':${parameter.name}")
 
-          if (parameter.defaultValueCode != null) {
-            kwargLiteral.write(' ?? ${parameter.defaultValueCode}');
-          }
+            /// Add trailing comma
+            ..write(',');
 
-          /// Add trailing comma
-          kwargLiteral.write(',');
-
-          kwargMapping.write("${parameter.name}:kwargs['${parameter.name}']"
+          kwargMapping.write("${parameter.name}: kwargs['${parameter.name}']"
               ' as ${parameter.type.displayName},');
+
+          optionalProxyParams.add(Parameter((b) {
+            b
+              ..name = parameter.name
+              ..type = refer(parameter.type.displayName)
+              ..named = parameter.isNamed;
+
+            if (parameter.defaultValueCode != null) {
+              b.defaultTo = Code(parameter.defaultValueCode);
+            }
+          }));
         }
       }
 
@@ -125,17 +146,8 @@ class DecoratorGenerator extends GeneratorForAnnotation<Decorator> {
         b
           ..name = element.name.substring(1)
           ..docs = ListBuilder(<String>[element.documentationComment])
-          ..requiredParameters = ListBuilder(element.parameters
-              .where((p) => !p.isOptional && p.isPositional)
-              .map<Parameter>((p) => Parameter((b) => b
-                ..name = p.name
-                ..type = refer(p.type.displayName))))
-          ..optionalParameters = ListBuilder(element.parameters
-              .where((p) => p.isOptional)
-              .map<Parameter>((p) => Parameter((b) => b
-                ..name = p.name
-                ..type = refer(p.type.displayName)
-                ..named = p.isNamed)))
+          ..requiredParameters = requiredProxyParams
+          ..optionalParameters = optionalProxyParams
           ..returns = refer(element.returnType.displayName)
           ..lambda = true
           ..body = Code(body.join('\n'));
