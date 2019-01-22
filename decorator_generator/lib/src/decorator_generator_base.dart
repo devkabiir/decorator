@@ -109,7 +109,9 @@ class DecoratorGenerator extends GeneratorForAnnotation<Decorator> {
 
       final body = <String>[
         'HostElement(',
-        "r'''${element.toString()}''', ",
+
+        /// Escape displayName
+        "r'''${element.toString().replaceAll("'''", r"\'\'\'")}''', ",
         '$argLiteral, $kwargLiteral, ',
         '([args, kwargs]) => ${element.name}(',
         '$argMapping $kwargMapping',

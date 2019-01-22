@@ -32,7 +32,9 @@ HostElement<R> greet<R>(HostElement<R> host) {
 
 /// This function joins its args
 @MyLogger('_joinArgs', myLevel)
-String _joinArgs(List<String> arg1, {List<String> arg2}) {
+@ArgumentsNotNull()
+String _joinArgs(List<String> arg1,
+    {List<String> arg2 = const [r'''$Default''', 'Args']}) {
   print('_joingArgs executed');
 
   return ((arg1 ?? [])..addAll(arg2 ?? [])).join();
