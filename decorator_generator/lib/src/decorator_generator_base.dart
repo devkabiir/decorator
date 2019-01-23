@@ -57,7 +57,7 @@ class DecoratorGenerator extends Generator {
 
   @override
   FutureOr<String> generate(LibraryReader library, BuildStep buildStep) async {
-    final values = Set<String>();
+    final values = StringBuffer();
 
     for (var element in library.allElements) {
       final annotations =
@@ -74,11 +74,11 @@ class DecoratorGenerator extends Generator {
           buildStep,
         );
 
-        values.add(generatedValue);
+        values.writeln(generatedValue);
       }
     }
 
-    return values.join('\n\n');
+    return values.toString();
   }
 
   @override
