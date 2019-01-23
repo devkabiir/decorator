@@ -23,6 +23,7 @@ String joinArgs(List<String> arg1,
             arg2: kwargs['arg2'] as List<String>,
           ),
     )
+        .wrapWith(const ArgumentsNotNull())
         .wrapWith(const MyLogger(
           '_joinArgs',
           const Level(

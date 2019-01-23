@@ -2,9 +2,10 @@
 part of decorator_generator;
 
 /// Sample docs
-class DecoratorGenerator extends GeneratorForAnnotation<Decorator> {
+class DecoratorGenerator extends Generator {
   final DecoratorGeneratorOptions options;
   final TypeChecker hostWrapperType = TypeChecker.fromRuntime(Wrapper);
+  final TypeChecker decoratorTypeChecker = TypeChecker.fromRuntime(Decorator);
   final TypeChecker functionDecoratorType =
       TypeChecker.fromRuntime(FunctionDecorator);
 
@@ -55,13 +56,42 @@ class DecoratorGenerator extends GeneratorForAnnotation<Decorator> {
   }
 
   @override
-  Future<String> generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) async {
+  FutureOr<String> generate(LibraryReader library, BuildStep buildStep) async {
+    final values = Set<String>();
+
+    for (var element in library.allElements) {
+      final annotations =
+          decoratorTypeChecker.annotationsOf(element, throwOnUnresolved: false);
+      if (annotations.isNotEmpty) {
+        final generatedValue = await generateForAnnotatedElement(
+          element,
+          annotations
+              .toList()
+
+              /// Apply decorators in reverse order
+              .reversed
+              .map<ConstantReader>((a) => ConstantReader(a)),
+          buildStep,
+        );
+
+        values.add(generatedValue);
+      }
+    }
+
+    return values.join('\n\n');
+  }
+
+  @override
+  Future<String> generateForAnnotatedElement(Element element,
+      Iterable<ConstantReader> annotations, BuildStep buildStep) async {
     if (element is FunctionElement) {
       final dartEmitter = DartEmitter();
 
-      final revivedDecorator =
-          revivedLiteral(annotation.revive(), element, dartEmitter);
+      final revivedDecorators = annotations.map(
+        (a) => '.wrapWith('
+            '${revivedLiteral(a.revive(), element, dartEmitter)}'
+            ')',
+      );
 
       if (!element.isPrivate) {
         throw InvalidGenerationSourceError(
@@ -138,7 +168,7 @@ class DecoratorGenerator extends GeneratorForAnnotation<Decorator> {
         '$argMapping $kwargMapping',
         '),',
         ')',
-        '.wrapWith($revivedDecorator)',
+        '${revivedDecorators.join('\n')}',
         '.value;',
       ];
 
