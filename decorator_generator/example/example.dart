@@ -24,6 +24,14 @@ const Level myLevel = Level('mylevel', 555);
 /// Logger for `decorator_generator.example`
 final Logger logger = Logger('decorator_generator.example');
 
+String _example;
+
+@MyLogger('_exampleGetter', myLevel)
+String get _exampleGetter => _example;
+
+@MyLogger('_exampleSetter', myLevel)
+set _exampleSetter(String value) => _example = value;
+
 HostElement<R> greet<R>(HostElement<R> host) {
   print('Hello $host');
 

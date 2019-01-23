@@ -7,6 +7,38 @@ part of decorator_generator.example;
 // DecoratorGenerator
 // **************************************************************************
 
+String get exampleGetter => HostElement(
+      r'''get _exampleGetter → String''',
+      {},
+      {},
+      ([args, kwargs]) => _exampleGetter,
+    )
+        .wrapWith(const MyLogger(
+          '_exampleGetter',
+          const Level(
+            'mylevel',
+            555,
+          ),
+        ))
+        .value;
+
+set exampleSetter(String value) => HostElement(
+      r'''set _exampleSetter(String value) → void''',
+      {
+        'value': value,
+      },
+      {},
+      ([args, kwargs]) => _exampleSetter = args['value'] as String,
+    )
+        .wrapWith(const MyLogger(
+          '_exampleSetter',
+          const Level(
+            'mylevel',
+            555,
+          ),
+        ))
+        .value;
+
 /// This function joins its args
 String joinArgs(List<String> arg1,
         {List<String> arg2: const [r'''$Default''', 'Args']}) =>

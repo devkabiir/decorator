@@ -14,7 +14,7 @@ class DecoratorGenerator extends Generator {
 
   ///
   Spec dartObject2Literal(DartObject arg, String decorator,
-      FunctionElement element, DartEmitter dartEmitter) {
+      ExecutableElement element, DartEmitter dartEmitter) {
     final constant = ConstantReader(arg);
     if (constant.isNull) {
       return literalNull;
@@ -84,7 +84,7 @@ class DecoratorGenerator extends Generator {
   @override
   Future<String> generateForAnnotatedElement(Element element,
       Iterable<ConstantReader> annotations, BuildStep buildStep) async {
-    if (element is FunctionElement) {
+    if (element is ExecutableElement) {
       final dartEmitter = DartEmitter();
 
       final revivedDecorators = annotations.map(
@@ -158,15 +158,29 @@ class DecoratorGenerator extends Generator {
       argLiteral.write('}');
       kwargLiteral.write('}');
 
+      final elementAsAccessor =
+          element is PropertyAccessorElement && !element.isSynthetic
+              ? element
+              : null;
+
+      final evalBody = (element.name) +
+          (elementAsAccessor?.isGetter ?? false
+
+              /// Getters don't have any args, just needs a trailing comma
+              ? ','
+              : elementAsAccessor?.isSetter ?? false
+
+                  /// Setters only have 1 required arg
+                  ? '$argMapping'
+                  : '($argMapping $kwargMapping),');
+
       final body = <String>[
         'HostElement(',
 
         /// Escape displayName
         "r'''${element.toString().replaceAll("'''", r"\'\'\'")}''', ",
         '$argLiteral, $kwargLiteral, ',
-        '([args, kwargs]) => ${element.name}(',
-        '$argMapping $kwargMapping',
-        '),',
+        '([args, kwargs]) => $evalBody',
         ')',
         '${revivedDecorators.join('\n')}',
         '.value;',
@@ -174,13 +188,21 @@ class DecoratorGenerator extends Generator {
 
       final proxy = Method((b) {
         b
-          ..name = element.name.substring(1)
-          ..docs = ListBuilder(<String>[element.documentationComment])
+          ..name = element.name.substring(1).replaceFirst('=', '')
+          ..docs = ListBuilder(<String>[element.documentationComment ?? ''])
           ..requiredParameters = requiredProxyParams
           ..optionalParameters = optionalProxyParams
-          ..returns = refer(element.returnType.displayName)
           ..lambda = true
           ..body = Code(body.join('\n'));
+
+        /// if it's a setter then it doesn't need a return type
+        if (!(elementAsAccessor?.isSetter ?? false)) {
+          b.returns = refer(element.returnType.displayName);
+        }
+
+        if (element is PropertyAccessorElement && !element.isSynthetic) {
+          b.type = element.isGetter ? MethodType.getter : MethodType.setter;
+        }
 
         if (element.isAsynchronous && element.isGenerator) {
           // TODO(devkabiir): async generators, https://github.com/devkabiir/decorator/issues/
@@ -198,13 +220,13 @@ class DecoratorGenerator extends Generator {
       return '${proxy.accept(dartEmitter)}';
     } else {
       throw InvalidGenerationSourceError(
-          'FunctionDecorators can only be applied to functions');
+          'Decorators can only be applied to Executable elements');
     }
   }
 
   /// Returns `const $revived($args $kwargs)`
   String revivedLiteral(
-      Revivable revived, FunctionElement element, DartEmitter dartEmitter) {
+      Revivable revived, ExecutableElement element, DartEmitter dartEmitter) {
     String instantiation = '';
     final location = revived.source.toString().split('#');
 
