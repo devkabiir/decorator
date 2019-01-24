@@ -57,33 +57,40 @@ class DecoratorGenerator extends Generator {
 
   @override
   FutureOr<String> generate(LibraryReader library, BuildStep buildStep) async {
-    final values = StringBuffer();
+    final generators = <Future<String>>[];
 
-    for (var element in library.allElements) {
+    void _generate(Element element) {
       final annotations =
           decoratorTypeChecker.annotationsOf(element, throwOnUnresolved: false);
-      if (annotations.isNotEmpty) {
-        final generatedValue = await generateForAnnotatedElement(
-          element,
-          annotations
-              .toList()
 
-              /// Apply decorators in reverse order
-              .reversed
-              .map<ConstantReader>((a) => ConstantReader(a)),
-          buildStep,
-        );
+      if (annotations.isEmpty) {
+        return;
+      }
 
-        values.writeln(generatedValue);
+      generators
+          .add(generateForAnnotatedElement(element, annotations, buildStep));
+    }
+
+    for (var topLevelElement in library.element.topLevelElements) {
+      if (topLevelElement is ClassElement) {
+        /// Getters and Setters
+        topLevelElement.accessors.forEach(_generate);
+
+        /// Methods
+        topLevelElement.methods.forEach(_generate);
+      } else {
+        _generate(topLevelElement);
       }
     }
 
-    return values.toString();
+    final generated = await Future.wait(generators);
+
+    return generated.where((gen) => gen.isNotEmpty).join('\n');
   }
 
   /// Generates proxy method for decorated elements
   Future<String> generateForAnnotatedElement(Element element,
-      Iterable<ConstantReader> annotations, BuildStep buildStep) async {
+      Iterable<DartObject> annotations, BuildStep buildStep) async {
     if (element.library.displayName?.isEmpty ?? true) {
       throw InvalidGenerationSourceError(
         'Library name not defined',
@@ -94,11 +101,15 @@ class DecoratorGenerator extends Generator {
     if (element is ExecutableElement) {
       final dartEmitter = DartEmitter();
 
-      final revivedDecorators = annotations.map(
-        (a) => '.wrapWith('
-            '${revivedLiteral(a.revive(), element, dartEmitter)}'
-            ')',
-      );
+      final revivedDecorators = annotations
+          .toList()
+          .reversed // Apply decorators in reverse order
+          .map<ConstantReader>((a) => ConstantReader(a))
+          .map(
+            (a) => '.wrapWith('
+                '${revivedLiteral(a.revive(), element, dartEmitter)}'
+                ')',
+          );
 
       if (!element.isPrivate) {
         throw InvalidGenerationSourceError(
