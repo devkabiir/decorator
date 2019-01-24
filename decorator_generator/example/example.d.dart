@@ -9,8 +9,6 @@ part of decorator_generator.example;
 
 String get exampleGetter => HostElement(
       r'''get _exampleGetter → String''',
-      {},
-      {},
       ([args, kwargs]) => _exampleGetter,
     )
         .wrapWith(const MyLogger(
@@ -24,11 +22,10 @@ String get exampleGetter => HostElement(
 
 set exampleSetter(String value) => HostElement(
       r'''set _exampleSetter(String value) → void''',
-      {
+      ([args, kwargs]) => _exampleSetter = args['value'] as String,
+      args: {
         'value': value,
       },
-      {},
-      ([args, kwargs]) => _exampleSetter = args['value'] as String,
     )
         .wrapWith(const MyLogger(
           '_exampleSetter',
@@ -44,16 +41,16 @@ String joinArgs(List<String> arg1,
         {List<String> arg2: const [r'''$Default''', 'Args']}) =>
     HostElement(
       r'''_joinArgs(List<String> arg1, {List<String> arg2: const [r\'\'\'$Default\'\'\', 'Args']}) → String''',
-      {
-        'arg1': arg1,
-      },
-      {
-        'arg2': arg2,
-      },
       ([args, kwargs]) => _joinArgs(
             args['arg1'] as List<String>,
             arg2: kwargs['arg2'] as List<String>,
           ),
+      args: {
+        'arg1': arg1,
+      },
+      kwargs: {
+        'arg2': arg2,
+      },
     )
         .wrapWith(const ArgumentsNotNull())
         .wrapWith(const MyLogger(
@@ -68,31 +65,30 @@ String joinArgs(List<String> arg1,
 /// This function also joins its args but doesnt check them against being null
 String joinArgs2(List<String> arg1, [List<String> arg2]) => HostElement(
       r'''_joinArgs2(List<String> arg1, [List<String> arg2]) → String''',
-      {
-        'arg1': arg1,
-        'arg2': arg2,
-      },
-      {},
       ([args, kwargs]) => _joinArgs2(
             args['arg1'] as List<String>,
             args['arg2'] as List<String>,
           ),
+      args: {
+        'arg1': arg1,
+        'arg2': arg2,
+      },
     ).wrapWith(const ArgumentsNotNull()).value;
 
 /// This one also joins its args but it is decorated with a [HostWrapper], this
 /// is useful when the decorater doesn't require any additional args.
 String joinArgs3(List<String> arg1, {List<String> arg2}) => HostElement(
       r'''_joinArgs3(List<String> arg1, {List<String> arg2}) → String''',
-      {
-        'arg1': arg1,
-      },
-      {
-        'arg2': arg2,
-      },
       ([args, kwargs]) => _joinArgs3(
             args['arg1'] as List<String>,
             arg2: kwargs['arg2'] as List<String>,
           ),
+      args: {
+        'arg1': arg1,
+      },
+      kwargs: {
+        'arg2': arg2,
+      },
     )
         .wrapWith(const DecorateWith(
           greet,
@@ -103,16 +99,16 @@ String joinArgs3(List<String> arg1, {List<String> arg2}) => HostElement(
 Future<String> joinArgs4(List<String> arg1, {List<String> arg2}) async =>
     HostElement(
       r'''_joinArgs4(List<String> arg1, {List<String> arg2}) → Future<String>''',
-      {
-        'arg1': arg1,
-      },
-      {
-        'arg2': arg2,
-      },
       ([args, kwargs]) => _joinArgs4(
             args['arg1'] as List<String>,
             arg2: kwargs['arg2'] as List<String>,
           ),
+      args: {
+        'arg1': arg1,
+      },
+      kwargs: {
+        'arg2': arg2,
+      },
     )
         .wrapWith(const MyLogger.detached(
           'loggerName',

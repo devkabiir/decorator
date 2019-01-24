@@ -101,8 +101,8 @@ class DecoratorGenerator extends Generator {
                 '__${element.name} (for private proxy metthod)');
       }
 
-      final argLiteral = StringBuffer('{');
-      final kwargLiteral = StringBuffer('{');
+      final argLiteral = StringBuffer();
+      final kwargLiteral = StringBuffer();
 
       final argMapping = StringBuffer();
       final kwargMapping = StringBuffer();
@@ -155,9 +155,6 @@ class DecoratorGenerator extends Generator {
         }
       }
 
-      argLiteral.write('}');
-      kwargLiteral.write('}');
-
       final elementAsAccessor =
           element is PropertyAccessorElement && !element.isSynthetic
               ? element
@@ -179,8 +176,9 @@ class DecoratorGenerator extends Generator {
 
         /// Escape displayName
         "r'''${element.toString().replaceAll("'''", r"\'\'\'")}''', ",
-        '$argLiteral, $kwargLiteral, ',
         '([args, kwargs]) => $evalBody',
+        '${argLiteral.isNotEmpty ? 'args:{$argLiteral},' : ''}',
+        '${kwargLiteral.isNotEmpty ? 'kwargs:{$kwargLiteral},' : ''}',
         ')',
         '${revivedDecorators.join('\n')}',
         '.value;',
