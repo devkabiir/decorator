@@ -78,9 +78,9 @@ class DecoratorGenerator extends Generator {
 
         /// Methods
         topLevelElement.methods.forEach(_generate);
-      } else {
-        _generate(topLevelElement);
       }
+
+      _generate(topLevelElement);
     }
 
     final generated = await Future.wait(generators);
