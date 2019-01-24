@@ -220,7 +220,9 @@ class DecoratorGenerator extends Generator {
       return '${proxy.accept(dartEmitter)}';
     } else {
       throw InvalidGenerationSourceError(
-          'Decorators can only be applied to Executable elements');
+        'Decorators can only be applied to Executable elements',
+        element: element,
+      );
     }
   }
 
