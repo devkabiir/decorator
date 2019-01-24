@@ -103,6 +103,13 @@ class DecoratorGenerator extends Generator {
           element: element);
     }
 
+    if (element is PropertyAccessorElement &&
+        !element.library.topLevelElements.contains(element)) {
+      throw InvalidGenerationSourceError(
+          'Class Getters/Setters not supported (yet)',
+          element: element);
+    }
+
     if (element is ExecutableElement) {
       final dartEmitter = DartEmitter();
 
