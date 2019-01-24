@@ -111,7 +111,8 @@ class HostElement<R> {
   bool _isEvaluated = false;
 
   /// Construct a [host] to be passed around in decorators
-  HostElement(this.displayName, this.args, this.kwargs, [this._eval])
+  HostElement(this.displayName, this._eval,
+      {this.args = const {}, this.kwargs = const {}})
       : _isModified = false;
 
   /// Whether [value] is already evaluated or not. This does not check if the
@@ -183,9 +184,9 @@ class HostElement<R> {
         eval == null) {
       return HostElement(
         this.displayName,
-        this.args,
-        this.kwargs,
         _eval,
+        args: this.args,
+        kwargs: this.kwargs,
       )
         .._isEvaluated = _isEvaluated
         .._evaluatedObject = _evaluatedObject
@@ -194,9 +195,9 @@ class HostElement<R> {
 
     return HostElement(
       displayName ?? this.displayName,
-      args ?? this.args,
-      kwargs ?? this.kwargs,
       eval ?? _eval,
+      args: args ?? this.args,
+      kwargs: kwargs ?? this.kwargs,
     )
       .._isEvaluated = nullValue || value != null || _isEvaluated
       .._evaluatedObject =
