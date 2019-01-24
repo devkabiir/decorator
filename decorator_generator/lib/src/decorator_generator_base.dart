@@ -98,6 +98,11 @@ class DecoratorGenerator extends Generator {
       );
     }
 
+    if (element is ClassElement) {
+      throw InvalidGenerationSourceError('Classes not supported (yet)',
+          element: element);
+    }
+
     if (element is MethodElement) {
       throw InvalidGenerationSourceError('Class methods not supported (yet)',
           element: element);
