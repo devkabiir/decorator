@@ -174,7 +174,8 @@ class DecoratorGenerator extends Generator {
               ? ','
               : elementAsAccessor?.isSetter ?? false
 
-                  /// Setters only have 1 required arg
+                  /// Setters only have 1 required arg,
+                  /// already has trailing comma
                   ? '$argMapping'
                   : '($argMapping $kwargMapping),');
 
