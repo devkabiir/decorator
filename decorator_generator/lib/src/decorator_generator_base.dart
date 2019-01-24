@@ -116,7 +116,7 @@ class DecoratorGenerator extends Generator {
             'Only private elements can be decorated',
             element: element,
             todo: 'Change ${element.name} to _${element.name} or '
-                '__${element.name} (for private proxy metthod)');
+                '__${element.name} (for private proxy method)');
       }
 
       final argLiteral = StringBuffer();
