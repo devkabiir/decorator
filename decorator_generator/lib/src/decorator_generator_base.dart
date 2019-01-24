@@ -81,6 +81,7 @@ class DecoratorGenerator extends Generator {
     return values.toString();
   }
 
+  /// Generates proxy method for decorated elements
   @override
   Future<String> generateForAnnotatedElement(Element element,
       Iterable<ConstantReader> annotations, BuildStep buildStep) async {
