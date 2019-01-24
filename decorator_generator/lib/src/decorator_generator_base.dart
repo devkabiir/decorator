@@ -84,6 +84,13 @@ class DecoratorGenerator extends Generator {
   /// Generates proxy method for decorated elements
   Future<String> generateForAnnotatedElement(Element element,
       Iterable<ConstantReader> annotations, BuildStep buildStep) async {
+    if (element.library.displayName?.isEmpty ?? true) {
+      throw InvalidGenerationSourceError(
+        'Library name not defined',
+        element: element,
+      );
+    }
+
     if (element is ExecutableElement) {
       final dartEmitter = DartEmitter();
 
