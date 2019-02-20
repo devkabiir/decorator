@@ -12,47 +12,75 @@ class DecoratorGenerator extends Generator {
   ///
   DecoratorGenerator(this.options);
 
-  ///
-  Spec dartObject2Literal(DartObject arg, String decorator,
-      ExecutableElement element, DartEmitter dartEmitter) {
-    final constant = ConstantReader(arg);
-    if (constant.isNull) {
-      return literalNull;
+  /// Returns `const $revived($args $kwargs)`
+  String constantLiteral(Revivable revived, DartEmitter dartEmitter) {
+    String instantiation = '';
+    final location = revived.source.toString().split('#');
+
+    /// If this is a class instantiation then `location[1]` will be populated
+    /// with the class name
+    if (location.length > 1) {
+      instantiation = location[1] +
+          (revived.accessor.isNotEmpty ? '.${revived.accessor}' : '');
+    } else {
+      /// Getters, Setters, Methods can't be declared as constants so this
+      /// literal must either be a top-level constant or a static constant and
+      /// can be directly accessed by `revived.accessor`
+      return revived.accessor;
     }
 
-    if (constant.isBool) {
-      return literal(arg.toBoolValue());
+    final args = StringBuffer();
+    final kwargs = StringBuffer();
+    Spec objectToSpec(DartObject object) {
+      final constant = ConstantReader(object);
+      if (constant.isNull) {
+        return literalNull;
+      }
+
+      if (constant.isBool) {
+        return literal(constant.boolValue);
+      }
+
+      if (constant.isDouble) {
+        return literal(constant.doubleValue);
+      }
+
+      if (constant.isInt) {
+        return literal(constant.intValue);
+      }
+
+      if (constant.isString) {
+        return literal(constant.stringValue);
+      }
+
+      if (constant.isList) {
+        return literal(constant.listValue);
+      }
+
+      if (constant.isMap) {
+        return literal(constant.mapValue);
+      }
+
+      /// Perhaps an object instantiation?
+      /// In that case, try initializing it and remove `const` to reduce noise
+      final revived = constantLiteral(constant.revive(), dartEmitter)
+          .replaceFirst('const ', '');
+      return Code(revived);
     }
 
-    if (constant.isDouble) {
-      return literal(constant.doubleValue);
+    for (var arg in revived.positionalArguments) {
+      final literalValue = objectToSpec(arg);
+
+      args.write('${literalValue.accept(dartEmitter)},');
     }
 
-    if (constant.isInt) {
-      return literal(constant.intValue);
+    for (var arg in revived.namedArguments.keys) {
+      final literalValue = objectToSpec(revived.namedArguments[arg]);
+
+      kwargs.write('$arg:${literalValue.accept(dartEmitter)},');
     }
 
-    if (constant.isString) {
-      return literal(arg.toStringValue());
-    }
-
-    if (constant.isList) {
-      return literal(arg.toListValue());
-    }
-
-    if (constant.isMap) {
-      return literal(arg.toMapValue());
-    }
-
-    /// Perhaps an object instantiation?
-    final revived = constant.revive();
-    return Code('${revivedLiteral(revived, element, dartEmitter)}');
-
-    // throw InvalidGenerationSourceError(
-    //   '$decorator was constructed with an unsupported literal type:'
-    //       '${constant.literalValue}',
-    //   element: element,
-    // );
+    return 'const $instantiation($args $kwargs)';
   }
 
   @override
@@ -124,7 +152,7 @@ class DecoratorGenerator extends Generator {
           .map<ConstantReader>((a) => ConstantReader(a))
           .map(
             (a) => '.wrapWith('
-                '${revivedLiteral(a.revive(), element, dartEmitter)}'
+                '${constantLiteral(a.revive(), dartEmitter)}'
                 ')',
           );
 
@@ -258,44 +286,6 @@ class DecoratorGenerator extends Generator {
         element: element,
       );
     }
-  }
-
-  /// Returns `const $revived($args $kwargs)`
-  String revivedLiteral(
-      Revivable revived, ExecutableElement element, DartEmitter dartEmitter) {
-    String instantiation = '';
-    final location = revived.source.toString().split('#');
-
-    /// If this is a class instantiation then `location[1]` will be populated
-    /// with the class name
-    if (location.length > 1) {
-      instantiation = location[1] +
-          (revived.accessor.isNotEmpty ? '.${revived.accessor}' : '');
-    } else {
-      /// Getters, Setters, Methods can't be declared as constants so this
-      /// literal must either be a top-level constant or a static constant and
-      /// can be directly accessed by `revived.accessor`
-      return revived.accessor;
-    }
-
-    final args = StringBuffer();
-    final kwargs = StringBuffer();
-
-    for (var arg in revived.positionalArguments) {
-      final literalValue =
-          dartObject2Literal(arg, instantiation, element, dartEmitter);
-
-      args.write('${literalValue.accept(dartEmitter)},');
-    }
-
-    for (var arg in revived.namedArguments.keys) {
-      final literalValue = dartObject2Literal(
-          revived.namedArguments[arg], instantiation, element, dartEmitter);
-
-      kwargs.write('$arg:${literalValue.accept(dartEmitter)},');
-    }
-
-    return 'const $instantiation($args $kwargs)';
   }
 }
 

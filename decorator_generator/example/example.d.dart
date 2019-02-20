@@ -13,7 +13,7 @@ String get exampleGetter => HostElement(
     )
         .wrapWith(const MyLogger(
           '_exampleGetter',
-          const Level(
+          Level(
             'mylevel',
             555,
           ),
@@ -29,7 +29,7 @@ set exampleSetter(String value) => HostElement(
     )
         .wrapWith(const MyLogger(
           '_exampleSetter',
-          const Level(
+          Level(
             'mylevel',
             555,
           ),
@@ -55,7 +55,7 @@ String joinArgs(List<String> arg1,
         .wrapWith(const ArgumentsNotNull())
         .wrapWith(const MyLogger(
           '_joinArgs',
-          const Level(
+          Level(
             'mylevel',
             555,
           ),
