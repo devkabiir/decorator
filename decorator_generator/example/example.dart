@@ -77,10 +77,8 @@ Future<String> _joinArgs4(List<String> arg1, {List<String> arg2}) async {
 }
 
 /// Decorater that null checks all args
-class ArgumentsNotNull implements Wrapper, FunctionDecorator {
-  const ArgumentsNotNull();
-  @override
-  bool get runInRelease => true;
+class ArgumentsNotNull extends Decorator implements Wrapper, FunctionDecorator {
+  const ArgumentsNotNull() : super(runInRelease: true);
 
   @override
   HostElement<R> wraps<R>(HostElement<R> host) {
@@ -105,9 +103,11 @@ class ArgumentsNotNull implements Wrapper, FunctionDecorator {
 }
 
 /// Decorater that logs the given host with any args
-class MyLogger implements Wrapper, FunctionDecorator {
+class MyLogger extends Decorator
+    implements Wrapper, FunctionDecorator, PropertyDecorator {
   /// Name of the logger to use
   final String loggerName;
+
   final Level logLevel;
 
   /// Wether this is a detached logger
@@ -120,9 +120,6 @@ class MyLogger implements Wrapper, FunctionDecorator {
   /// Uses a detached logger for logging
   const MyLogger.detached(this.loggerName, [this.logLevel = Level.FINEST])
       : isDetached = true;
-
-  @override
-  bool get runInRelease => false;
 
   @override
   HostElement<R> wraps<R>(HostElement<R> host) {

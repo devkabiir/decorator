@@ -1,6 +1,8 @@
 /// Decorator annotation implementation and helpers
 library decorator.impl;
 
+import 'types.dart';
+
 /// The element being decorated, To evaluate the host call
 /// the passed in [HostElement] object e.g. `host(args, kwargs)`
 ///
@@ -64,21 +66,34 @@ class DecorateWith implements Wrapper, FunctionDecorator {
 ///
 /// Actual implementation of the proxy function may change but it's signature
 /// will be equal to the [host]
-abstract class Decorator {
-  ///
-  const Decorator();
-
+class Decorator {
   /// if this decorator should be in effect in release mode
   ///
   /// when `false` the host element behaves as if it wasn't decorated by this
   /// particular decorator
-  bool get runInRelease;
+  final bool runInRelease;
+
+  ///
+  const Decorator({this.runInRelease = false});
 }
 
-/// Base interface for a decorator that decorates a top-level function
-abstract class FunctionDecorator extends Decorator {
-  ///
-  const FunctionDecorator();
+/// Exception thrown by decorator [T]
+class DecoratorException<T extends Decorator> implements Exception {
+  /// Decorator responsible for this exception
+  final T decorator;
+
+  /// Exception message
+  final String message;
+
+  /// Exception thrown by decorators
+  const DecoratorException(this.decorator, this.message);
+  @override
+  String toString() {
+    if (message == null) {
+      return 'DecoratorException: $T threw an exception without [message]';
+    }
+    return 'DecoratorException: $T threw `$message`';
+  }
 }
 
 /// Helper to pass the host between decorators. A [host] can be anything
@@ -227,24 +242,6 @@ class HostElement<R> {
 
     return host;
   }
-}
-
-/// Base interface for a decorator that decorates a class method
-abstract class MethodDecorator extends Decorator {
-  ///
-  const MethodDecorator();
-}
-
-/// Interface for a decorator that wraps a [host] element
-abstract class Wrapper extends Decorator {
-  ///
-  const Wrapper();
-
-  /// This is the actual wrapper function
-  ///
-  /// Remember to return the [host] for other decorators to consume, it
-  /// can be the same instance or a different one
-  HostElement<R> wraps<R>(HostElement<R> host);
 }
 
 /// Helper to check if an object is initialized with `null` value
