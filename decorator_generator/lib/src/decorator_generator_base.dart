@@ -13,7 +13,18 @@ class DecoratorGenerator extends Generator {
   DecoratorGenerator(this.options);
 
   /// Returns `const $revived($args $kwargs)`
-  String constantLiteral(Revivable revived, DartEmitter dartEmitter) {
+  String constantLiteral(Object object, DartEmitter dartEmitter) {
+    Revivable revived;
+    if (object is Revivable) {
+      revived = object;
+    }
+    if (object is DartObject) {
+      revived = ConstantReader(object).revive();
+    }
+    if (revived == null) {
+      throw ArgumentError.value(object, 'object',
+          'Only `Revivable` and `DartObject` are supported values');
+    }
     String instantiation = '';
     final location = revived.source.toString().split('#');
 
@@ -111,7 +122,7 @@ class DecoratorGenerator extends Generator {
       _generate(topLevelElement);
     }
 
-    final generated = await Future.wait(generators);
+    final generated = await Future.wait(generators, eagerError: true);
 
     return generated.where((gen) => gen.isNotEmpty).join('\n');
   }
@@ -149,10 +160,9 @@ class DecoratorGenerator extends Generator {
       final revivedDecorators = annotations
           .toList()
           .reversed // Apply decorators in reverse order
-          .map<ConstantReader>((a) => ConstantReader(a))
           .map(
             (a) => '.wrapWith('
-                '${constantLiteral(a.revive(), dartEmitter)}'
+                '${constantLiteral(a, dartEmitter)}'
                 ')',
           );
 
