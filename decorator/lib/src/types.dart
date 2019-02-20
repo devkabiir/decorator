@@ -12,7 +12,7 @@ final Logger logger = Logger('decorator.types');
 mixin ClassDecorator on Decorator {}
 
 /// Base interface for a decorator that decorates a class method
-mixin ClassMethodDecorator on Decorator implements ClassMemberDecorator {}
+mixin ClassMethodDecorator implements ClassMemberDecorator {}
 
 /// Base interface for a decorator that decorates a class member
 /// equivalent to mixins [ClassMethodDecorator] and [ClassPropertyDecorator]
@@ -20,7 +20,7 @@ mixin ClassMemberDecorator on Decorator {}
 
 /// Base interface for a decorator that decorates a class property
 /// (fields, getters, setters)
-mixin ClassPropertyDecorator on Decorator implements ClassMemberDecorator {}
+mixin ClassPropertyDecorator implements ClassMemberDecorator {}
 
 /// Base interface for a decorator that decorates a top-level property
 /// (fields, getters, setters)
