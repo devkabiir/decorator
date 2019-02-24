@@ -17,10 +17,10 @@ part 'src/decorator_generator_base.dart';
 const String _addExtension = '.d';
 
 /// Header of generated library
-final String decoratorHeader = ([
+final String decoratorHeader = [
   '// GENERATED CODE - DO NOT MODIFY BY HAND',
-]..add((['// ignore_for_file: ']..addAll(ignoreLints)).join(',')))
-    .join('\n');
+  '// ignore_for_file: ${ignoreLints.join(', ')}'
+].join('\n');
 
 /// lints to ignore using `ignore_for_file` comment
 final List<String> ignoreLints = [
